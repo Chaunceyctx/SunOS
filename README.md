@@ -1,2 +1,2 @@
-# SunOS：
-SunOS is a tiny operating system kernel.
+# SunnyOS
+SunnyOS is a tiny operating system kernel.
