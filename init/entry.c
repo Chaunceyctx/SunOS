@@ -1,6 +1,6 @@
 #include "types.h"
 #include "console.h"
-
+#include "debug.h"
 
 int kern_entry()
 {
@@ -25,8 +25,10 @@ int kern_entry()
 //	*input++ = 'l'; *input++ = color;
 //	*input++ = '!'; *input++ = color;
 //
+	init_debug();
+	init_gdt();
 	console_clear();
-	console_write_color("Welcome to SunnyOS!!!\n", rc_black, rc_green);
+	printk_color(rc_black, rc_green,"Welcome to SunnyOS!!!\n");
 	return 0;
 }
 
