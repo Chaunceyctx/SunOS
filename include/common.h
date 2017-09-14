@@ -12,4 +12,10 @@ uint8_t inb(uint16_t port);
 uint16_t inw(uint16_t port);
 //从端口读一个字
 
+// 开启中断
+void enable_intr();
+
+// 关闭中断
+void disable_intr();
+
 #endif 
