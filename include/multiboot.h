@@ -42,7 +42,12 @@ struct multiboot_t {
 	uint32_t size;
 	uint32_t addr;
 	uint32_t shndx;
-
+	
+	/*
+	 *以下两项之处保存由BIOS提供的内存分布的缓冲区的地址和长度
+	 *mmap_addr 是缓冲区的地址，mmap_length 是缓冲区的总大小
+	 *缓冲区由一个或者多个下面的mmap_entry_t组成
+	 */  
 
 	uint32_t mmap_length;		
 	uint32_t mmap_addr;
@@ -52,12 +57,14 @@ struct multiboot_t {
 	uint32_t config_table; 		// ROM 配置表
 	uint32_t boot_loader_name; 	// boot loader 的名字
 	uint32_t apm_table; 	    	// APM 表
+	
 	uint32_t vbe_control_info;
 	uint32_t vbe_mode_info;
 	uint32_t vbe_mode;
 	uint32_t vbe_interface_seg;
 	uint32_t vbe_interface_off;
 	uint32_t vbe_interface_len;
+
 } __attribute__((packed)) multiboot_t;
 
 

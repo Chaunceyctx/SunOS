@@ -105,7 +105,6 @@ void kern_init()
 //	*input++ = 'l'; *input++ = color;
 //	*input++ = '!'; *input++ = color;
 //
-
 	init_debug();
 	init_gdt();
 	init_idt();
@@ -145,6 +144,7 @@ void kern_init()
 	while (1) {
 		asm volatile ("hlt");
 	}
+
 }
 
 

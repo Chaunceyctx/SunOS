@@ -6,7 +6,8 @@ static elf_t kernel_elf;
 
 void init_debug()
 {
-	// 从 GRUB 提供的信息中获取到内核符号表和代码地址信息
+	//从GRUB提供的信息中获取到内核符号表和代码地址信息
+
 	kernel_elf = elf_from_multiboot(glb_mboot_ptr);
 }
 
@@ -20,7 +21,6 @@ void print_cur_status()
 			"mov %%es, %2;"
 			"mov %%ss, %3;"
 			: "=m"(reg1), "=m"(reg2), "=m"(reg3), "=m"(reg4));
-
 	// 打印当前的运行级别
 	printk("%d: @ring %d\n", round, reg1 & 0x3);
 	printk("%d:  cs = %x\n", round, reg1);
@@ -51,5 +51,6 @@ void print_stack_trace()
 		ebp = (uint32_t*)*ebp;
 	}
 }
+
 
 
