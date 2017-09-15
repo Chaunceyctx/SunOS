@@ -16,6 +16,7 @@ void print_cur_status()
 	static int round = 0;
 	uint16_t reg1, reg2, reg3, reg4;
 
+
 	asm volatile ( 	"mov %%cs, %0;"
 			"mov %%ds, %1;"
 			"mov %%es, %2;"
@@ -38,12 +39,12 @@ void panic(const char *msg)
 	
 	// 致命错误发生后打印栈信息后停止在这里
 	while(1);
+
 }
 
 void print_stack_trace()
 {
 	uint32_t *ebp, *eip;
-
 	asm volatile ("mov %%ebp, %0" : "=r" (ebp));
 	while (ebp) {
 		eip = ebp + 1;
@@ -51,6 +52,7 @@ void print_stack_trace()
 		ebp = (uint32_t*)*ebp;
 	}
 }
+
 
 
 

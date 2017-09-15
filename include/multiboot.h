@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+
 /**
  * 启动后，在32位内核进入点，机器状态如下：
  *   1. CS 指向基地址为 0x00000000，限长为4G – 1的代码段描述符。
@@ -38,6 +39,7 @@ struct multiboot_t {
 	 * ELF 格式内核映像的section头表。
 	 * 包括每项的大小、一共有几项以及作为名字索引的字符串表。
 	 */
+
 	uint32_t num;
 	uint32_t size;
 	uint32_t addr;
@@ -49,6 +51,7 @@ struct multiboot_t {
 	 *缓冲区由一个或者多个下面的mmap_entry_t组成
 	 */  
 
+
 	uint32_t mmap_length;		
 	uint32_t mmap_addr;
 	
@@ -58,6 +61,7 @@ struct multiboot_t {
 	uint32_t boot_loader_name; 	// boot loader 的名字
 	uint32_t apm_table; 	    	// APM 表
 	
+
 	uint32_t vbe_control_info;
 	uint32_t vbe_mode_info;
 	uint32_t vbe_mode;
@@ -67,9 +71,15 @@ struct multiboot_t {
 
 } __attribute__((packed)) multiboot_t;
 
-
+/*
+ * size 是相关结构的大小，单位是字节，它可能大于最小值20
+ * base_addr_low 是启动地址的低位,base_addr_high 是高32 位，启动地址总共有64 位
+ * length_low 是内存区域大小的低位，32length_high 是内存区域大小的高32 位，总共是64 位
+ * type 是相应地址区间的类型，1 代表可用，所有其它的值代表保留区域RAM
+ */
 typedef
 struct mmap_entry_t {
+
 	uint32_t size; 		// 留意 size 是不含 size 自身变量的大小
 	uint32_t base_addr_low;
 	uint32_t base_addr_high;
@@ -86,4 +96,3 @@ extern multiboot_t *mboot_ptr_tmp;
 extern multiboot_t *glb_mboot_ptr;
 
 #endif 	// INCLUDE_MULTIBOOT_H_
-
