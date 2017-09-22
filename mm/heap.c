@@ -3,6 +3,8 @@
 #include "vmm.h"
 #include "heap.h"
 
+//双向链表表示内存块，实际上是申请一页即为一块内存块，然后切分
+
 //申请内存块
 static void alloc_chunk(uint32_t start, uint32_t len);
 
@@ -15,7 +17,7 @@ static void split_chunk(header_t *chunk, uint32_t len);
 //合并内存块
 static void glue_chunk(header_t *chunk);
 
-static uint32_t heap_max = HEAP_START;
+static uint32_t heap_max = HEAP_START;//0xE0000000
 
 //内存块管理头指针
 static header_t *heap_first;

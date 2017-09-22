@@ -10,7 +10,7 @@ static int vsprintf(char *buff, const char *format, va_list args);
 
 void printk(const char *format, ...)
 {
-	// 避免频繁创建临时变量，内核的栈很宝贵
+	// 避免频繁创建临时变量，内核的栈很宝贵,创建在静态常量区
 	static char buff[1024];
 	va_list args;
 	int i;
@@ -61,7 +61,7 @@ static int skip_atoi(const char **s)  //把字符表述的整型数字转化成�
 #define SPECIAL		32  	// 0x                  		‘#’
 #define SMALL	  	64  	// use 'abcdef' instead of 'ABCDEF'
 //注意此处数字设计，1 = 0000001, 2 = 0000010, 4 = 0000100, 8 = 0001000, ...
-//6位中每一位对应一种格式，有则为1,无为0
+//7位中每一位对应一种格式，有则为1,无为0
 
 #define do_div(n,base) ({ \
 		int __res; \
@@ -87,7 +87,7 @@ static char *number(char *str, int num, int base, int size/*field_width*/, int p
 		return 0;
 	}//base = 2， 10, 8，16
 
-	c = (type & ZEROPAD) ? '0' : ' ' ;//如果flag既有左对齐，又有用0来补，上面吧ZEROPAD删去了，所以用空格
+	c = (type & ZEROPAD) ? '0' : ' ' ;		//如果flag既有左对齐，又有用0来补，上面把ZEROPAD删去了，所以用空格
 
 	if (type & SIGN && num < 0) {			//	+		输出符号(正号或负号)
 		sign = '-';				//	空格		输出值为正时冠以空格，为负时冠以负号
@@ -166,7 +166,7 @@ static int vsprintf(char *buff, const char *format, va_list args)
 
 	int field_width;	// width of output field    输出结果宽度
 	int precision;		// min. # of digits for integers; max number of chars for from string
-						//输出精度，确定小数点后多少位（虽然没有）和字符串长度
+				// 输出精度，确定小数点后多少位（虽然这里没有实现）和字符串长度
 
 	for (str = buff ; *format ; ++format) {
 		if (*format != '%') {
@@ -176,7 +176,7 @@ static int vsprintf(char *buff, const char *format, va_list args)
 			
 		flags = 0; //*format = '%'
 		repeat:
-			++format;		// this also skips first '%' ++format跳过'%'
+			++format;		// this also skips first '%' ++format跳过'前面的%'
 			switch (*format) {
 				case '-': flags |= LEFT;	//输出宽度为4，数据为16 ，输出结果为“16  ”（补上俩空格）
 					  goto repeat;
@@ -189,20 +189,20 @@ static int vsprintf(char *buff, const char *format, va_list args)
 				case '0': flags |= ZEROPAD;
 					  goto repeat;
 			}
-	//	-		结果左对齐，右边填空格
+	//	-		输出结果左对齐，右边填空格
 	//	+		输出符号(正号或负号)
 	//	空格		输出值为正时冠以空格，为负时冠以负号
 	//	#		对c、s、d、u类无影响；
-	//			对o类，在输出时加前缀o；
-	//			对x类，在输出时加前缀0x；
+	//			对o八进制类，在输出时加前缀o；
+	//			对x十六进制类，在输出时加前缀0x；
 	//			对e、g、f 类当结果有小数时才给出小数点。
 	//	0		printf("%04d", 16);输出数据0016，宽度为4	
 
 		// get field width
-		field_width = -1; //
+		field_width = -1; 
 		if (is_digit(*format)) {				//例如%15d，指定输出宽度为15,用空格来补
-			field_width = skip_atoi(&format);	//例如%010，skip_atoi返回10，定义输出数据宽度
-		} else if (*format == '*') {			//例如printf("%*d", 4, 16); 指定输出宽度为4，不够用空格补
+			field_width = skip_atoi(&format);		//例如%010，skip_atoi返回10，定义输出数据宽度
+		} else if (*format == '*') {				//例如printf("%*d", 4, 16); 指定输出宽度为4，不够用空格补
 			// it's the next argument
 			field_width = va_arg(args, int);
 			if (field_width < 0) {				//如果printf("%*d", -7, 16);那么那个负号就相当于指定左对齐'-',然后7表示输出宽度为7，用空格补
@@ -213,7 +213,7 @@ static int vsprintf(char *buff, const char *format, va_list args)
 
 		// get the precision
 		precision = -1;				//此处的precision主要是用于字符串，不用于小数点后几位，因为没有
-		if (*format == '.') {   //%5.4lf指定输出宽度为5，精度为4，如果数据实际长度超过5（123.1234567）
+		if (*format == '.') {   		//%5.4lf指定输出宽度为5，精度为4，如果数据实际长度超过5（123.1234567）
 			++format;			//故应该按实际位数输出，小数位数超过4位部分被截去“123.1234”
 			if (is_digit(*format)) {
 				precision = skip_atoi(&format);
@@ -229,19 +229,19 @@ static int vsprintf(char *buff, const char *format, va_list args)
 		// get the conversion qualifier
 		//int qualifier = -1;	// 'h', 'l', or 'L' for integer fields
 		if (*format == 'h' || *format == 'l' || *format == 'L') {   // %ld   表示输出long整数												
-			//qualifier = *format;									// %lf   表示输出double浮点数
+			//qualifier = *format;				   // %lf   表示输出double浮点数
 			++format;
 		}
 
 		switch (*format) {
 		case 'c':					//字符
-			if (!(flags & LEFT)) {  //没有LEFT，最后输出数据
+			if (!(flags & LEFT)) {  		//没有LEFT，最后输出数据
 				while (--field_width > 0) {
 					*str++ = ' ';
 				}
 			}
 			*str++ = (unsigned char) va_arg(args, int);
-			while (--field_width > 0) {	//有LEFT，无需else，因为如果有LEFT，上面已将field_width减成0
+			while (--field_width > 0) {		//有LEFT，无需else，因为如果有LEFT，上面已将field_width减成0
 				*str++ = ' ';
 			}
 			break;
@@ -291,27 +291,27 @@ static int vsprintf(char *buff, const char *format, va_list args)
 
 		case 'd':
 		case 'i':
-			flags |= SIGN;		//%d，%i加上十进制符号整数
-		case 'u':			// %u十进制无符号整数
+			flags |= SIGN;				//%d，%i加上十进制符号整数
+		case 'u':					// %u十进制无符号整数
 			str = number(str, va_arg(args, unsigned long), 10,
 				field_width, precision, flags);
 			break;
-		case 'b':			//实际上printf不提供输出二进制
+		case 'b':					//实际上printf不提供输出二进制
 			str = number(str, va_arg(args, unsigned long), 2,
 				field_width, precision, flags);
 			break;
 
 		case 'n':
 			ip = va_arg(args, int *);
-			*ip = (str - buff);	//记录输出的数据长度？？？
+			*ip = (str - buff);			//记录输出的数据长度？？？
 			break;
 
 		default:
 			if (*format != '%')
 				*str++ = '%';		
 			if (*format) {			
-				*str++ = *format;	//屁精屁精的，比如像%%，第一个if不进，进第二个加入%，其他的%w，w ！= %，str加入%，w进第二个if，str加入w
-			} else {			//没想到特殊情况=_=
+				*str++ = *format;		//屁精屁精的，比如像%%，第一个if不进，进第二个加入%，其他的%w，w ！= %，str加入%，w进第二个if，str加入w
+			} else {				//没想到特殊情况=_=
 				--format;
 			}
 			break;
@@ -322,73 +322,3 @@ static int vsprintf(char *buff, const char *format, va_list args)
 	return (str - buff);	//输出结果长度
 }
 
-
-//my version,
-//为了以后可能要用到这些函数接口，所以我打算先按照作者的方式来写，之后完成整个内核后，看看能不能回来修改成我自己版本
-/*static inline void int2char(int data, char ouput[], int radix)*/
-/*{*/
-/*	int index = 0, temp;*/
-/*	while (data) {*/
-/*		temp = data % radix;*/
-/*		if(temp > 9) {//对于16进制输出*/
-/*			output[index++] = temp - 10 + 'A';*/
-/*		} else {*/
-/*			output[index++] = temp + '0';*/
-/*		}*/
-/*		data /= radix;*/
-/*	}*/
-/*	output[index] = '\0';*/
-/*	int t;*/
-/*	for(int front = 0, index--; front < index; front++, index--){*/
-/*		t = output[front];*/
-/*		output[front] = output[index];*/
-/*		output[index] = t;	*/
-/*	}*/
-/*}*/
-
-/*void printk(const char *format, ...)*/
-/*{*/
-/*	char temp,output[30];*/
-/*	va_list ap;*/
-/*	*/
-/*	va_start(ap, format);*/
-/*	while(temp = *format){*/
-/*		switch(temp){*/
-/*			case '%':*/
-/*				switch(*format++)*/
-/*					case 'd':*/
-/*						int data = va_arg(ap, int);*/
-/*						int2char(data, output, 10);*/
-/*						console_write(output);*/
-/*						break;*/
-/*					case 'x':*/
-/*						int data = var_arg(ap, int);*/
-/*						int2char(data, output, 16);*/
-/*						console_write(output);*/
-/*						break;*/
-/*					case 'f':*/
-/*						double data = var_arg(ap,double);*/
-/*						int integer = (int)data;*/
-/*						int2char(integer, output, 10);*/
-/*						console_write(output);*/
-/*						console_putc_color('.', rc_black, rc_white);*/
-/*						int fraction = (int)((data - integer) * 1e6);*/
-/*						int2char(fraction, output, 10);*/
-/*						console_write(output);*/
-/*						break;*/
-/*					case 'c':*/
-/*						char c = var_arg(ap, int);//在可变长参数中，应用的是"加宽"原则。float类型被扩展成double；char、 short类型被扩展成int*/
-/*						console_putc_color(c, rc_black, rc_white);*/
-/*						break;*/
-/*					case 's':*/
-/*						char *str = var_arg(ap, char *);*/
-/*						console_write(str);*/
-/*						break;*/
-/*					case ''					*/
-/*			default:*/
-/*				console_putc_color(temp, rc_black, rc_white);*/
-/*				break;*/
-/*		}*/
-/*	*/
-/*	}*/
-/*}*/
